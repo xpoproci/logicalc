@@ -1,0 +1,35 @@
+﻿<div class="table-wrapper min-w-full">
+    <div class="table-outlet overflow-x-auto min-w-full">
+        <table class="table">
+            @for (int row = 0; row < Table.Table.Count; row++)
+            {
+                if (row == 0)
+                {
+                    <thead>
+                        <tr>
+                            @for (int col = 0; col < Table.Table[row].Count; col++)
+                            {
+                                <th>@Table.Table[row][col]</th>
+                            }
+                        </tr>
+                    </thead>
+                }
+                else
+                {
+                    <tbody>
+                        <tr>
+                            @for (int col = 0; col < Table.Table[row].Count; col++)
+                            {
+                                <th class="@(col+1 == Table.Table[row].Count ? "result": "")">@Table.Table[row][col]</th>
+                            }
+                        </tr>
+                    </tbody>
+                }
+            }
+        </table>
+    </div>
+</div>
+@code {
+    [Parameter]
+    public TruthTableRepresentation Table { get; set; } = new();
+}

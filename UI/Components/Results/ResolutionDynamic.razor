@@ -1,0 +1,109 @@
+﻿@inject FormulaFacade formulaFacade
+
+<div class="resolutions">
+    <div class="w-full flex justify-between">
+        <p>Vyskúšajte si rezolvovať</p>
+        <svg class="cursor-pointer" @onclick="Reset" fill="currentColor" widht="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path clip-rule="evenodd" fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z"></path>
+        </svg>
+    </div>
+    <div class="flex w-full flex-wrap gap-1 items-center justify-center">
+        @foreach (var item in Clausule.Clausules)
+        {
+            <div class="left dynamic" @onclick="() => FormulaClick(item)">@item.ToString()</div>
+        }
+    </div>
+
+    @foreach (var item in Model)
+    {
+        <div class="flex flex-nowrap gap-4">
+            <div class="left">@item.Item1.ToString()</div>
+            <div class="right">@item.Item2.ToString()</div>
+        </div>
+    }    
+
+    @if (isSolved)
+    {
+        <div class="result"></div>
+    }
+    else
+    {
+        <div class="flex flex-nowrap gap-4">
+            @if (tuple.Item1 != null)
+            {
+                <div class="left cursor-not-allowed" @onclick="() => tuple.Item1 = null">@tuple.Item1.ToString()</div>
+            }
+            else
+            {
+                <div class="result placeholder">Kliknite na rezolventu</div>
+            }
+
+            @if (tuple.Item2 != null)
+            {
+                <div class="right cursor-not-allowed" @onclick="() => tuple.Item2 = null">@tuple.Item2.ToString()</div>
+            }
+            else
+            {
+                <div class="result placeholder">Kliknite na rezolventu</div>
+            }
+
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public ClausuleCNFDto Clausule { get; set; } = new();
+
+    private List<(ClausuleCNFFormula, ClausuleCNFFormula)> Model { get; set; } = new();
+
+    private (ClausuleCNFFormula, ClausuleCNFFormula) tuple = new();
+
+    private bool isSolved = false;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+    }
+
+    void Reset()
+    {
+        Model = new();
+        tuple = new();
+        isSolved = false;
+    }
+
+    void FormulaClick(ClausuleCNFFormula formula)
+    {
+        if (isSolved)
+        {
+            return;
+        }
+        if(tuple.Item1 == null)
+        {
+            tuple.Item1 = formula;
+        }
+        else
+        {
+            tuple.Item2 = formula;
+        }
+
+        if(tuple.Item1 != null && tuple.Item2 != null)
+        {
+            Model.Add(tuple);
+            var newClausule = formulaFacade.ResolveClausuleFormulas(tuple.Item1, tuple.Item2);
+            if (newClausule.IsEmpty)
+            {
+                isSolved = true;
+                StateHasChanged();
+                tuple = new();
+                return;
+            }
+            Clausule.Clausules.Add(newClausule);
+            tuple = new();
+            tuple.Item1 = newClausule;
+        }
+
+        StateHasChanged();
+    }
+}

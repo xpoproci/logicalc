@@ -1,0 +1,68 @@
+﻿@inject AuthorizationTools AuthTools
+@inject NavigationManager uriHelper;
+
+<BaseModal Id="login-modal" @ref="baseModal" Title="Prihlásenie a registrácia">
+    <p>Užívateľské meno</p>
+    <div class="search-box">
+        <input type="text" @bind="model.UserName" placeholder="Zadajte meno" class="fillable-text-field" />
+    </div>
+
+    <p>Užívateľské heslo</p>
+    <div class="search-box">
+        <input type="password" @bind="model.Password" placeholder="Zadajte heslo" class="fillable-text-field" />
+    </div>
+    @if (!valid)
+    {
+        <div class="rounded-xl error w-full py-2 text-center">@ErrMessage</div>
+    }
+    <div class="flex gap-4 flex-row w-full justify-center w-full">
+        <a @onclick="Register" class="button-outline w-full-important">Registrovať a prihlásiť</a>
+        <a @onclick="Login" class="button w-full-important">Prihlásiť</a>
+    </div>
+</BaseModal>            
+
+@code {
+    private UserLoginDto model = new();
+
+    private bool valid = true;
+    private string ErrMessage = string.Empty;
+
+    private BaseModal? baseModal;
+
+    private async Task Register()
+    {
+        var result = await AuthTools.RegisterUserAsync(model);
+        if (result)
+        {
+            valid = true;
+            uriHelper.NavigateTo(uriHelper.Uri, forceLoad: true);
+        }
+        else
+        {
+            valid = false;
+            ErrMessage = "Zadané používateľské meno už existuje.";
+        }
+        StateHasChanged();
+    }
+
+    private async Task Login()
+    {
+        var result = await AuthTools.LoginUserAsync(model);
+        if (result)
+        {
+            valid = true;
+            uriHelper.NavigateTo(uriHelper.Uri, forceLoad: true);
+        }
+        else
+        {
+            valid = false;
+            ErrMessage = "Nesprávne prihlasovacie údaje.";
+        }
+        StateHasChanged();
+    }
+
+    public void Open()
+    {
+        baseModal?.Open();
+    }
+}

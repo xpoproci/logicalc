@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<Antlr4UseCSharpGenerator>True</Antlr4UseCSharpGenerator>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Antlr4 Update="PredicateLogic.g4">
+			<Listener>false</Listener>
+			<CustomToolNamespace>Business.PredicateLogic</CustomToolNamespace>
+		</Antlr4>
+		<Antlr4 Update="PropositionalLogic.g4">
+			<Listener>false</Listener>
+			<CustomToolNamespace>Business.PropositionalLogic</CustomToolNamespace>
+		</Antlr4>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Include="PredicateLogic*.cs" />
+		<Compile Include="PropositionalLogic*.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Antlr4.Runtime.Standard" Version="4.12.0" />
+	  <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Data\Data.csproj" />
+	</ItemGroup>
+
+</Project>

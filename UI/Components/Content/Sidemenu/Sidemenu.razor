@@ -1,0 +1,8 @@
+﻿<ul class="side-menu">
+    @ChildContent
+</ul>
+
+@code{
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

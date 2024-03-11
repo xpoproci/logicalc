@@ -1,0 +1,266 @@
+﻿@implements IDisposable
+
+@inject AuthorizationTools AuthTools
+@inject NavigationManager uriHelper
+@inject FormulaFacade formulaFacade
+@inject IJSRuntime JSRuntime
+
+<BaseModal Id="input-modal" @ref="baseModal" Title="Zadávanie vstupu">
+    <p>Zadajte formulu</p>
+    <div class="flex w-full gap-4">
+        <div class="search-box flex-grow">
+            <input type="text" id="formula-input" @bind-value="input" @ref="inputRef" placeholder="Zadajte formulu" class="fillable-text-field" />
+            <div @onclick="Reset">
+                <span class="font-bold">ESC</span>
+            </div>
+        </div>
+        @if (isClausule)
+        {
+            <button class="button" @onclick="AddFormula">
+                Pridať
+            </button>
+        }
+    </div>
+    
+
+    <p>Klauzula</p>
+    @if (inputs.Any())
+    {
+        <div class="flex flex-start gap-2 flex-wrap">
+            @foreach (var c in inputs)
+            {
+                <span @onclick="() => inputs.Remove(c)" class="clausule-formula cursor-not-allowed">@c</span>
+            }
+        </div>
+    }    
+    <div class="flex flex-start items-center">
+        <input type="checkbox" class="checkbox" @bind="isClausule" @onclick="() => Reset()" />
+        <span class="ml-2 text-sm text-slate-700 dark:text-slate-400">
+            Zapnúť mód na zadávanie klauzuly. Formule musia byť v KNF.
+        </span>
+    </div>
+
+    @if (!valid)
+    {
+        <div class="rounded-xl error w-full py-2 text-center">@ErrMessage</div>
+    }
+
+    <p>Vyberte typ logiky</p>
+    <div class="modal-switch">
+        <span @onclick="SwitchLogicType" class="modal-switch-item @(logicType == LogicType.Propositional ? "active" : "")">Výroková</span>
+        <span @onclick="SwitchLogicType" class="modal-switch-item @(logicType == LogicType.Predicate ? "active" : "")">Predikátová</span>
+    </div>
+
+    @foreach (var item in inputHelper.GetKeyboardSymbols())
+    {
+        <p>@item.Key</p>
+        <div class="flex flex-wrap gap-3 justify-center">
+            @foreach(var k in item.Value)
+            {
+                <button class="button-outline" @onclick="() => OnKeyboardClick(k)">@k</button>                
+            }
+        </div>
+    }
+
+    <button @onclick="Submit" class="button">Potvrdiť</button>
+</BaseModal>
+
+@code {
+    private string input = string.Empty;
+
+    private HashSet<string> inputs = new();
+
+    private ElementReference inputRef;
+
+    private InputHelper inputHelper = new();
+    private bool valid = true;
+    private bool isClausule = false;
+
+    private string ErrMessage = "Zadaná formula je v nesprávnom formáte.";
+
+    private BaseModal? baseModal;
+
+    private LogicType logicType = LogicType.Propositional;
+
+    public void Open(string? i = null, HashSet<string>? ins = null)
+    {
+        if(i != null)
+        {
+            input = i;
+        }
+
+        if(ins != null)
+        {
+            inputs = ins;
+            isClausule = true;
+        }
+        baseModal?.Open();
+    }
+
+    private async Task OnKeyboardClick(string symbol)
+    {
+        var currentPosition = await JSRuntime.InvokeAsync<int>("getCursorPosition", "formula-input");
+
+        if (currentPosition >= 0 && currentPosition <= input.Length)
+        {
+            input = input.Insert(currentPosition, symbol);
+            StateHasChanged();
+        }
+
+        // Move the cursor to right after the inserted character
+        await JSRuntime.InvokeVoidAsync("setCursorPosition", "formula-input", currentPosition + 1);
+    }
+
+    private async Task Submit()
+    {
+        if (isClausule)
+        {
+            if(inputs.Count <= 1)
+            {
+                ErrMessage = "Počet formúl v klauzuly musí byť minimálne 2.";
+                valid = false;
+                StateHasChanged();
+                return;
+            }
+        }
+        else
+        {
+            var r = await formulaFacade.ValidateInputAsync(input, logicType, isClausule);
+            if (!r)
+            {
+                valid = false;
+                ErrMessage = "Zadaná formula je v nesprávnom formáte.";
+                StateHasChanged();
+                return;
+            }
+        }        
+
+        valid = true;
+
+        var user = await AuthTools.GetLoggedUser();
+        var result = Guid.Empty;
+        if (isClausule)
+        {
+            result = await formulaFacade.CalculateClausule(inputs.ToList(), logicType, user);
+        }
+        else
+        {
+            result = await formulaFacade.CalculateFormula(input, logicType, user);            
+        }
+
+        if(result != Guid.Empty)
+        {
+            uriHelper.NavigateTo($"/results/{result}", true);
+        }
+    }
+
+    public async Task AddFormula()
+    {
+        var r = await formulaFacade.ValidateInputAsync(input, logicType, isClausule);
+        if (!r)
+        {
+            valid = false;
+            ErrMessage = "Zadaná formula je v nesprávnom formáte, alebo nie je v KNF.";
+            StateHasChanged();
+            return;
+        }
+
+        valid = true;
+
+        inputs.Add(input);
+        StateHasChanged();
+    }
+
+    private void SwitchLogicType()
+    {
+        return;
+
+        switch (logicType)
+        {
+            case LogicType.Predicate:
+                logicType = LogicType.Propositional;
+                break;
+            default:
+                logicType = LogicType.Predicate;
+                break;
+        }
+
+        input = string.Empty;
+        inputs.Clear();
+
+
+        StateHasChanged();
+    }
+
+    private Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        return Task.CompletedTask;
+    }
+
+    private void Reset(){
+        input = string.Empty;
+        inputs = new();
+        StateHasChanged();
+    }
+
+
+    //register shortcuts
+
+    protected override async Task OnInitializedAsync()
+    {
+        _objRef = DotNetObjectReference.Create(this);
+        _module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/interops.js");
+        await _module.InvokeVoidAsync("registerShortcut", _objRef);
+    }
+
+    //ctrl+k press
+    private DotNetObjectReference<InputModal> _objRef;
+    private IJSObjectReference _module;
+
+    [JSInvokable]
+    public async Task OnCtrlKPressed()
+    {
+        Open();
+        await JSRuntime.InvokeVoidAsync("blurInputField", inputRef);
+    }
+
+    [JSInvokable]
+    public async Task OnEnterPressed()
+    {
+        if (baseModal != null && !baseModal.IsVisible())
+        {
+            return;
+        }
+        await JSRuntime.InvokeVoidAsync("blurInputField", inputRef);
+        Console.WriteLine(input);
+        if (isClausule)
+        {
+            await AddFormula();
+        }
+        else
+        {
+            await Submit();
+        }
+
+        await JSRuntime.InvokeVoidAsync("focusInputField", inputRef);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnEscapePressed()
+    {
+        if (baseModal != null && !baseModal.IsVisible())
+        {
+            return;
+        }
+        await JSRuntime.InvokeVoidAsync("blurInputField", inputRef);
+        Reset();
+        await JSRuntime.InvokeVoidAsync("focusInputField", inputRef);
+    }
+
+    public void Dispose()
+    {
+        _objRef?.Dispose();
+        _module?.InvokeVoidAsync("dispose");
+    }
+}

@@ -1,0 +1,45 @@
+﻿@inject FormulaFacade facade
+
+<div class="history">
+    @if (ShowTitle)
+    {
+        <h3>História posledne zadaných dotazov</h3>
+    }
+    <div class="history-items">
+        @if(list.Count == 0)
+        {
+            <p class="mx-auto">História je prázdna.</p>
+        }
+        @foreach(var item in list)
+        {
+            <HistoryItem Model="item"></HistoryItem>
+        }
+    </div>
+</div>
+
+@if (list.Count == 0)
+{
+    <div class="mx-auto m-4 text-center">
+        <a href="/history" class="button">Zobraziť všetko</a>
+    </div>
+}
+
+@code {
+    private List<HistoryDto> list = new();
+
+    [Parameter]
+    public HistoryFilterDto? Filter { get; set; }
+
+    [Parameter]
+    public bool ShowTitle { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        list = await facade.GetHistoryAsync(Filter);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        list = await facade.GetHistoryAsync(Filter);        
+    }
+}

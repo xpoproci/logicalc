@@ -1,0 +1,1 @@
+ocislovat genericke rezolvovanie, resources, pridat funkciu do gramatiky

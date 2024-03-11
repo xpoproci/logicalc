@@ -1,0 +1,113 @@
+﻿@inject FormulaFacade formulaFacade
+@inject NavigationManager uriHelper
+@page "/results/{Id:guid}"
+
+@if(model == null)
+{
+    <p>loading...</p>
+}
+else
+{
+    <SidebarChanger>
+        <Sidebar>
+            <Sidemenu>
+                <SidemenuItem IsHeading="true" Title="Výsledky" />
+                @if (!model.Table.IsEmpty)
+                {
+                    <SidemenuItem Id="truth-table" Title="Pravdivostná tabuľka" />                    
+                }
+                <SidemenuItem Id="normal-forms" Title="Normálne formy" />
+                @if (!model.Clausule.IsEmpty() && model.Resolution.Any())
+                {
+                    <SidemenuItem Id="resolution" Title="Rezolučný dôkaz" />                    
+                }
+            </Sidemenu>
+        </Sidebar>
+    </SidebarChanger>
+
+    <Section Title="Vstupné Hodnoty" Id="truth-table" SubTitle="@model.Formula.Input">
+        @if(model.Formula.FormulaType == FormulaType.Clausule)
+        {
+            <p>Použité formuly v klauzuly:</p>
+            <div class="flex gap-4 my-4">
+                @foreach(var f in model.Formulas)
+                {
+                    <a class="block px-3 py-1 cursor-pointer border border-primary-400 text-primary-400 rounded-lg" @onclick="() => NavigateTo(f.Id)">@f.Input</a>
+                }
+            </div>
+        }
+    </Section>
+
+    @if (!model.Table.IsEmpty)
+    {
+        <Section Title="Pravdivostná tabuľka" Id="truth-table" Collapsible="true">
+            <TruthTable Table="model.Table"></TruthTable>
+        </Section>
+    }
+
+    <Section Title="Úplné normálne formy" Id="normal-forms" Collapsible="true">
+        <p>Konjunktívna normálna forma</p>
+        <code>
+            @if (model.Formula.Tautology)
+            {
+                <span class="comment">Formula je tautológia, takže jej CNF je konštanta True alebo 1.</span>
+            }
+            else
+            {
+                @model.Formula.UCNF
+            }
+        </code>
+        <br />
+        <p>Disjunktívna normálna forma</p>
+        <code>
+            @if (model.Formula.Contradiction)
+            {
+                <span class="comment">Formula je kontradikcia, takže jej DNF je konštanta False alebo 0.</span>
+            }
+            else
+            {
+                @model.Formula.UDNF
+            }
+        </code>
+    </Section>
+    @if (!model.Clausule.IsEmpty() && model.Resolution.Any())
+    {
+        <Section Title="Rezolučný dôkaz" Id="resolution" Collapsible="true">
+            <div class="flex flex-wrap gap-4">
+                @if (model.Resolution.Any())
+                {
+                    <Resolution Model="model.Resolution"></Resolution>
+                }
+                @if (!model.Clausule.IsEmpty())
+                {
+                    <ResolutionDynamic Clausule="model.Clausule"></ResolutionDynamic>
+                }
+            </div>
+        </Section>
+    }
+}
+
+
+@code {
+
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private ResultDto? model;
+
+    protected override async Task OnInitializedAsync()
+    {
+        model = await formulaFacade.GetResultAsync(Id);
+
+        model.ToString();
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+    }
+
+    void NavigateTo(Guid id){
+        uriHelper.NavigateTo($"/results/{id}", true);
+    }
+}

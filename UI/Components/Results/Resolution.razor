@@ -1,0 +1,21 @@
+﻿<div class="resolutions">
+    <p class="w-full">Generické rezolvovanie</p>
+    @foreach (var item in Model)
+    {
+        <div class="flex flex-nowrap gap-4">
+            <div class="left">@item.Item1.ToString()</div>
+            <div class="right">@item.Item2.ToString()</div>
+        </div>
+    }
+    <div class="result"></div>
+</div>
+
+@code{
+    [Parameter]
+    public List<(ClausuleCNFFormula, ClausuleCNFFormula)> Model { get; set; } = new();
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+    }
+}

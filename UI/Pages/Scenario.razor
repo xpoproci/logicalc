@@ -1,0 +1,206 @@
+﻿@page "/scenario"
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Logicalc - Scenár</PageTitle>
+
+<SidebarChanger>
+    <Sidebar>
+        <Sidemenu>
+            <SidemenuItem IsHeading="true" Title="Návod" />
+            <SidemenuItem Id="scenario" Title="Scenár na otestovanie aplikácie" />
+            <SidemenuItem Id="format" Title="Formát zadávania formuly" />
+        </Sidemenu>
+    </Sidebar>
+</SidebarChanger>
+
+<Section Title="Scenár" SubTitle="Scenár na otestovanie aplikácie" Id="scenario">
+    <h4 class="font-black">Úvod</h4>
+    <p>
+        Volám sa Viliam Popróči a som študentom 3. ročníka na Fakulte elektrotechniky a informatiky Technickej univerzity v Košiciach. Týmto by som Vám rád predstavil webovú aplikáciu <span class="font-bold text-primary-500"> Logicalc</span>, ktorá je súčasťou mojej bakalárskej práce,
+        ktorá je určená najmä ako pomôcka pre študentov. Jedná sa o kalkulačku na dokazovanie výrokovej a predikátovej logiky. Aplikácia obsahuje niekoľko kľúčových funkcií, ktoré študentom pomôžu lepšie
+        pochopiť dokazovanie formúl a klauzúl v oblasti predikátovej a výrokovej logiky. Aby som sa uistil, že aplikácia funguje optimálne a ponúka korektné riešenia potrebujem Vašu pomoc pri otestovaní.
+    </p>
+    <br />
+    <h4 class="font-black">UI/UX</h4>
+    <ul class="list-decimal ml-6">
+        <li>Vyskúšajte svetlý/tmavý mód</li>
+        <li>Vyskúšajte farebné schémy</li>
+        <li>Vyskúšajte či schéma a mód ostávajú po Vašom nastavení rovnaké aj po obnovení stránky</li>
+        <li>Vyskúšajte klávesové skratky</li>
+        <li>Vyskúšajte ľavú navigáciu</li>
+        <li>Vyskúšajte pomocnú klávesnicu v modálnom okne pre vstup</li>
+    </ul>
+    <div class="py-4 w-full">
+        <code class="w-full-important">
+            <span class="comment">// klávesové skratky</span><br />
+            CTRL+K <span class="comment">// otvorí kdekoľvek na stránke modálne okno pre vstup</span><br />
+            ESCAPE <span class="comment">// ak je otvorené modálne okno pre vstup, vyresetuje vstupné pole</span><br />
+            ENTER <span class="comment">// ak je otvorené modálne okno pre vstup, pridá formulu do klauzuly alebo potvrdí vstup</span><br />
+        </code>
+    </div>
+
+    <h4 class="font-black">Autentifikácia (nepovinné)</h4>
+    <ul class="list-decimal ml-6">
+        <li>Vyskúšajte registráciu</li>
+        <li>Vyskúšajte prihlásenie</li>
+        <li>Vyskúšajte odhlásenie</li>
+    </ul>
+    <br />
+
+    <h4 class="font-black">Vstup</h4>
+    <span class="my-4 w-full-important block rounded-lg text-center info p-4">
+        Momentálne je k dispozícii len otestovanie vstupu na výrokovej logike avšak vstupy predikátovej logiky fungujú analogicky, takže pre tento test je to dostačujúce.
+    </span>
+    <p>Formát zadávania korektného formátu vstupu je popísaný nižšie.</p>
+    <br />
+    <ul class="list-decimal ml-6">
+        <li>Vyskúšajte zadať formulu</li>
+        <li>Vyskúšajte zadať klauzulu</li>
+        <li>Môžete samozrejme vyskúšať aj vlastné ľubovoľné vstupy</li>
+    </ul>
+    <br />
+    <p>Pre zjednodušenie sú pre Vás pripravené vstupy, ktoré sa po kliknutí predvyplnia do modálneho okna pre vstup.</p>
+    <br />
+    <p>Jednoduché formuly</p>
+    <div class="py-4 w-full flex gap-4">
+        @foreach (var f in inputs)
+        {
+            <span @onclick="() => OpenInputModal(f)" class="rounded cursor-pointer border rounded-lg py-2 px-3 border-slate-300 dark:border-slate-600 hover:dark:bg-slate-600 hover:bg-slate-300">
+                @f
+            </span>
+        }
+    </div>
+
+    <p>Klauzuly</p>
+    <div class="py-4 w-full flex gap-4">
+        @foreach (var f in clausules)
+        {
+            <span @onclick="() => OpenInputModal(f)" class="rounded cursor-pointer border rounded-lg py-2 px-3 border-slate-300 dark:border-slate-600 hover:dark:bg-slate-600 hover:bg-slate-300">
+                @f
+            </span>
+        }
+    </div>
+
+    <p class="rounded-lg warn my-4 p-4 text-center">
+        Pri zadávaní formuly je veľmi dôležité dbať na formát. Formát vsupu nájdete <span class="underline cursor-pointer" @onclick="ClickLink">TU.</span>
+    </p>
+
+    <h4 class="font-black">Výsledky</h4>
+    <ul class="list-decimal ml-6">
+        <li>Prezrite si výsledky</li>
+        <li>Vyskúšajte skrývanie jednotlivích sekcií výsledkov</li>
+        <li>Vyskúšajte interaktívne rezolvovanie formule</li>
+    </ul>
+    <br />
+
+    <h4 class="font-black">História</h4>
+    <ul class="list-decimal ml-6">
+        <li>Vyskúšajte či Vás odkazy v histórii vrátia na správny výsledok</li>
+    </ul>
+    <br />
+
+    <h4 class="font-black">Dotazník</h4>
+    <ul class="list-decimal ml-6">
+        <li>Vyplňte dotazník, ktorý otvoríte tu: <span @onclick="OpenFeedbackModal" class="underline cursor-pointer">Dotazník</span> alebo kliknutím na otáznik v hornom menu</li>
+    </ul>
+
+    <p class="rounded-lg success my-4 p-4 text-center font-bold">
+        Ďakujem Vám za Váš čas a spoluprácu! <br />
+        V prípade akýchkoľvek otázok ma môžete kontaktovať na viliam.poproci@student.tuke.sk
+    </p>
+</Section>
+
+<Section Title="Formát" SubTitle="Formát zadávania formuly" Id="format">
+    <p>
+        Každá formula, ktorá je zadávaná do vstupného poľa musí byť správne vytvorená formula. <span class="text-red-500 font-bold">Každá binárna operácia musí byť implicitne ohraničená zátvorkami</span>, aby bola jasne určená prednosť vyhodnocovania.
+    </p>
+    <br />
+    <p>
+        Pri výrokovej logike môžeme považovať za správne vytvorenú formulu, takú ktorá nadobúda nasledujúcu podobu.
+    </p>
+
+    <div class="py-4 w-full">
+        <code class="w-full-important">
+            !, ¬ <span class="comment">// negácia</span><br />
+            !A <br />
+            A <br />
+            !(A or B), !(A | B), !(A ∨ B), (A∨B) <span class="comment">// všetky tieto možnosti sú správne použitie logickej spojky ∨</span><br />
+            !(A and B), !(A & B), !(A ∧ B), (A∧B) <span class="comment">// všetky tieto možnosti sú správne použitie logickej spojky ∧</span><br />
+            (A -> B) <span class="comment">// implikácia</span><br />
+            (A @("<->") B) <span class="comment">// ekvivalencia</span><br />
+            (!(A @("<->") B) and ((C ∧ !C) or !(A | B))) <span class="comment">// používa kombináciu možností, ale je stále správne formátovaná</span><br />
+        </code>
+    </div>
+
+    <p>
+        Pri predikátovej logike, je postup zadávania logického spojovania rovnaký s rozdielom premenných, predikátov a kvantifikátorov.
+    </p>
+    <div class="py-4 w-full">
+        <code class="w-full-important">
+            (forall x), !(∀x) <span class="comment">// označenie všeobecného kvantifikátora, viaže sa priamo na nasledjúcu zátvorku</span><br />
+            (exists x), !(∃x) <span class="comment">// označenie existenčného kvantifikátora, viaže sa priamo na nasledjúcu zátvorku</span><br />
+            P(x) <span class="comment">// označenie predikátu s aritou jedna</span><br />
+            P(x,...,n) <span class="comment">// označenie predikátu s aritou n</span><br />
+            !(∀x)P(x) <span class="comment">// predikát s naviazaným kvantifikátorom</span><br />
+            !(∀x)(P(x) or Q(x)) <span class="comment">// zátvorka s naviazaným kvantifikátorom</span><br />
+        </code>
+    </div>
+    <p>
+        Pre zadávanie klauzuly, je potrebné zaškrtnúť možnosť mód na zadávanie klauzuly. Je dôležité podotknúť, že formuly, ktoré sú zadávané v klauzulovom móde musi byť v konjnktívnej normálnej forme(KNF).
+    </p>
+    <div class="py-4 w-full">
+        <code class="w-full-important">
+            <span class="comment">// príklad korektných vstupov v klauzulovom móde</span><br />
+            ¬A <br />
+            A <br />
+            (A or B) <br />
+            (A or ¬B) <br />
+            ((A or ¬B) or C) <br />
+        </code>
+    </div>
+</Section>
+
+@code {
+    [CascadingParameter]
+    public MainLayout? MainLayout { get; set; }
+
+    private List<string> inputs = new();
+    private List<string> clausules = new();
+
+    protected override void OnInitialized()
+    {
+        //simple formulas
+        inputs.Add("¬A");
+        inputs.Add("A");
+        inputs.Add("¬(A ∨ B)");
+        inputs.Add("(¬(A ∨ B) -> (C ∧ B))");
+        inputs.Add("¬(¬(A ∨ B) <-> (A ∨ B))");
+
+        //clausules
+        clausules.Add("¬A;(A ∨ B);(A ∨ ¬B)");
+        clausules.Add("¬A;¬B;(A ∨ B);(A ∨ ¬B)");
+    }
+
+    private void OpenInputModal(string input)
+    {
+        var inp = input.Split(";").ToList();
+        if (inp.Count == 1)
+        {
+            MainLayout?.InputModalRef?.Open(inp.First());
+        }
+        if (inp.Count > 1)
+        {
+            MainLayout?.InputModalRef?.Open(null, inp.ToHashSet());
+        }
+    }
+
+    private void OpenFeedbackModal()
+    {
+        MainLayout?.FeedbackModalRef?.Open();
+    }
+
+    private async Task ClickLink()
+    {
+        await JSRuntime.InvokeVoidAsync("scrollToElement", "format");
+    }
+}

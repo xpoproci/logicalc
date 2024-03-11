@@ -1,0 +1,38 @@
+﻿@inherits LayoutComponentBase
+@inject ThemeService themeService;
+
+<PageTitle>Logicalc - Dokazovanie predikátovej a výrokovej logiky</PageTitle>
+
+<CascadingValue Value="this">
+    <div class="page @(preferences.DarkMode) @(preferences.Color)">
+        <Header OnPreferencesChanged="HandlePreferencesChanged"></Header>
+        @Body
+
+        <Footer></Footer>
+
+        @*modals*@
+        <LoginModal @ref="LoginModalRef"></LoginModal>
+        <InputModal @ref="InputModalRef"></InputModal>
+        <FeedbackModal @ref="FeedbackModalRef"></FeedbackModal>
+    </div>
+</CascadingValue>
+
+@code {
+    private Preferences preferences = new();
+
+    public LoginModal? LoginModalRef { get; set; }
+    public InputModal? InputModalRef { get; set; }
+    public FeedbackModal? FeedbackModalRef { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        preferences = await themeService.GetPreferencesAsync();
+        StateHasChanged();
+    }
+
+    private async Task HandlePreferencesChanged()
+    {
+        preferences = await themeService.GetPreferencesAsync();
+        StateHasChanged();
+    }
+}

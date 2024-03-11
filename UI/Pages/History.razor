@@ -1,0 +1,48 @@
+﻿@inject AuthorizationTools authTools;
+@page "/history"
+
+<PageTitle>Logicalc - História</PageTitle>
+
+<SidebarChanger>
+    <Sidebar>
+        <Sidemenu>
+            <SidemenuItem IsHeading="true" Title="Filter" />
+            <SidemenuItem Click="() => ChangeFilter(null)" Id="f1" Title="Všetky" SmoothScrollDisabled="true" />
+            <SidemenuItem Click="() => ChangeFilter(LogicType.Propositional)" Id="f2" Title="Výroková" SmoothScrollDisabled="true" />
+            <SidemenuItem Click="() => ChangeFilter(LogicType.Predicate)" Id="f3" Title="Predikátová" SmoothScrollDisabled="true" />
+        </Sidemenu>
+    </Sidebar>
+</SidebarChanger>
+
+
+<Section Title="História" SubTitle="Filter: Všetko">
+    <HistoryList Filter="filter" ShowTitle="false"></HistoryList>
+</Section>
+
+@code{
+    private HistoryFilterDto? filter;
+    private UserDto? user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await authTools.GetLoggedUser();
+    }
+
+    void ChangeFilter(LogicType? type)
+    {
+        if(type == null)
+        {
+            filter = null;
+        }
+        else
+        {
+            filter = new HistoryFilterDto()
+                {
+                    LogicType = type.Value,
+                    UserId = user?.Id
+                };
+        }
+        
+        StateHasChanged();
+    }
+}

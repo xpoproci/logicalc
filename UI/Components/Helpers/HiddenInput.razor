@@ -1,0 +1,15 @@
+﻿<input @ref="textInput" @onkeydown="HandleKeyDown" @attributes="AdditionalAttributes" />
+
+@code {
+    [Parameter(CaptureUnmatchedValues = true)] public IDictionary<string, object> AdditionalAttributes { get; set; }
+    private ElementReference textInput;
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            Console.WriteLine("Enter key pressed");
+            // Invoke your event here
+        }
+    }
+}

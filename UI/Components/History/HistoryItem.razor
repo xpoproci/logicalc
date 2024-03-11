@@ -1,0 +1,33 @@
+﻿@if (Model == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <a href="@($"/results/{Model.FormulaId}")" class="history-item">
+        <p class="text-sm">@Model.Created</p>
+        <p class="text-lg">@Model.Formula.Input</p>
+        <div class="badges">
+            <span class="badge info">@Model.Formula.ComputationTime ms</span>
+            <span class="badge gray">@Model.GetFormulaTypeString()</span>
+            <span class="badge warn">@Model.GetLogicTypeString()</span>
+            @if (Model.Formula.Tautology)
+            {
+                <span class="badge success">Tautológia</span>
+            }
+            else if (Model.Formula.Satisfiability)
+            {
+                <span class="badge success">Splniteľná</span>
+            }
+            @if (Model.Formula.Contradiction)
+            {
+                <span class="badge error">Kontradikcia</span>
+            }
+        </div>
+    </a>
+}
+
+@code {
+    [Parameter]
+    public HistoryDto Model { get; set; }
+}

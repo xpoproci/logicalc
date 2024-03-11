@@ -1,0 +1,61 @@
+﻿@inherits LayoutComponentBase
+@inject ThemeService themeService;
+
+<PageTitle>Logicalc - Dokazovanie predikátovej a výrokovej logiky</PageTitle>
+
+<CascadingValue Value="this">
+    <div class="page @(preferences.DarkMode) @(preferences.Color)">
+
+        <div class="header-wrapper">
+            <Header OnPreferencesChanged="HandlePreferencesChanged"></Header>
+        </div>
+
+        <div class="body-wrapper">
+            @if (sidebarContent != null)
+            {
+                <div class="sidebar">
+                    @sidebarContent
+                </div>
+            }
+
+            <div class="content-body">
+                @Body
+            </div>
+        </div>
+
+        <Footer></Footer>
+
+        @*modals*@
+        <LoginModal @ref="LoginModalRef"></LoginModal>
+        <InputModal @ref="InputModalRef"></InputModal>
+        <FeedbackModal @ref="FeedbackModalRef"></FeedbackModal>
+    </div>
+</CascadingValue>
+
+@code {
+    private Preferences preferences = new();
+
+    private RenderFragment? sidebarContent;
+
+    public LoginModal? LoginModalRef { get; set; }
+    public InputModal? InputModalRef { get; set; }
+    public FeedbackModal? FeedbackModalRef { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        preferences = await themeService.GetPreferencesAsync();
+        StateHasChanged();
+    }
+
+    private async Task HandlePreferencesChanged()
+    {
+        preferences = await themeService.GetPreferencesAsync();
+        StateHasChanged();
+    }
+
+    public void SetSidebarContent(RenderFragment content)
+    {
+        sidebarContent = content;
+        StateHasChanged();
+    }
+}
